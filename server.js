@@ -4,30 +4,37 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 
-// .env file se environment variables load karo
 dotenv.config();
 
 const app = express();
 
-// ---------- MIDDLEWARE ----------
-app.use(cors()); // frontend (localhost:5173) ko backend se baat karne do
-app.use(express.json()); // incoming JSON data ko parse karne ke liye
+app.use(cors());
+app.use(express.json());
 
-// ---------- ROUTES ----------
 app.use("/api/auth", authRoutes);
 
-// ---------- TEST ROUTE (confirm karne ke liye server chal raha hai) ----------
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
 
-// ---------- MONGODB CONNECTION ----------
+// ---------- 404 HANDLER ----------
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Route not found." });
+});
+
+// ---------- GLOBAL ERROR HANDLER ----------
+app.use((err, req, res, next) => {
+  console.error("Unexpected error:", err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Something went wrong on the server. Please try again later.",
+  });
+});
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected successfully");
-
-    // Database connect hone ke baad hi server start karo
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);

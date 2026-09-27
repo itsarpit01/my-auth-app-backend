@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
 
-// Yeh middleware check karta hai ki request ke sath valid token hai ya nahi
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // "Bearer TOKEN" format se token nikaalo
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ success: false, message: "No token provided." });
@@ -13,7 +12,7 @@ function verifyToken(req, res, next) {
     if (err) {
       return res.status(403).json({ success: false, message: "Invalid or expired token." });
     }
-    req.user = decoded; // decoded data (userId, email) request me daal do agle steps ke liye
+    req.user = decoded;
     next();
   });
 }
