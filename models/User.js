@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true } // createdAt, updatedAt fields automatically add ho jayengi
+  {
+    timestamps: true, // createdAt, updatedAt fields automatically add ho jayengi
+    versionKey: false, // __v field ko disable kar deta hai
+  }
 );
 
 const User = mongoose.model("User", userSchema);
