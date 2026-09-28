@@ -8,19 +8,24 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// ---------- MIDDLEWARE ----------
+// Sirf hamara frontend backend se baat kar sakta hai
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
+// ---------- ROUTES ----------
 app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
 
+// ---------- 404 HANDLER ----------
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found." });
 });
 
+// ---------- GLOBAL ERROR HANDLER ----------
 app.use((err, req, res, next) => {
   console.error("Unexpected error:", err.stack);
   res.status(500).json({
@@ -29,13 +34,14 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ---------- MONGODB CONNECTION ----------
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log(" MongoDB connected successfully");
+    console.log("✅ MongoDB connected successfully");
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
-      console.log(` Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {

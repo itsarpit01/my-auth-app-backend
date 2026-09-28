@@ -7,6 +7,7 @@ import verifyToken from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// ---------- SIGNUP VALIDATION SCHEMA (Strong) ----------
 const signupSchema = z
   .object({
     name: z
@@ -42,11 +43,13 @@ const signupSchema = z
     { message: "Password must not contain your name", path: ["password"] }
   );
 
+// ---------- LOGIN VALIDATION SCHEMA ----------
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
+// ---------- UPDATE PROFILE VALIDATION SCHEMA ----------
 const updateProfileSchema = z.object({
   name: z
     .string()
@@ -62,6 +65,7 @@ const updateProfileSchema = z.object({
     .max(100, "Email must not exceed 100 characters"),
 });
 
+// ---------- CHANGE PASSWORD VALIDATION SCHEMA ----------
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z
@@ -75,6 +79,16 @@ const changePasswordSchema = z.object({
     .regex(/^\S*$/, "Password must not contain spaces"),
 });
 
+// Common 500 error response - internal details user ko nahi dikhate
+function sendServerError(res, error) {
+  console.error("Route error:", error);
+  res.status(500).json({
+    success: false,
+    message: "Something went wrong. Please try again later.",
+  });
+}
+
+// ---------- SIGNUP ROUTE ----------
 router.post("/signup", async (req, res) => {
   try {
     const result = signupSchema.safeParse(req.body);
@@ -95,10 +109,11 @@ router.post("/signup", async (req, res) => {
 
     res.status(201).json({ success: true, message: "Signup successful! Please login now." });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error: " + error.message });
+    sendServerError(res, error);
   }
 });
 
+// ---------- LOGIN ROUTE ----------
 router.post("/login", async (req, res) => {
   try {
     const result = loginSchema.safeParse(req.body);
@@ -131,13 +146,13 @@ router.post("/login", async (req, res) => {
       user: { name: user.name, email: user.email },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error: " + error.message });
+    sendServerError(res, error);
   }
 });
 
+// ---------- GET PROFILE ROUTE (Protected) ----------
 router.get("/profile", verifyToken, async (req, res) => {
   try {
-
     const user = await User.findById(req.user.userId).select("-password");
 
     if (!user) {
@@ -149,10 +164,11 @@ router.get("/profile", verifyToken, async (req, res) => {
       user: { name: user.name, email: user.email },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error: " + error.message });
+    sendServerError(res, error);
   }
 });
 
+// ---------- UPDATE PROFILE ROUTE (Protected) ----------
 router.put("/update-profile", verifyToken, async (req, res) => {
   try {
     const result = updateProfileSchema.safeParse(req.body);
@@ -183,10 +199,11 @@ router.put("/update-profile", verifyToken, async (req, res) => {
       user: { name: updatedUser.name, email: updatedUser.email },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error: " + error.message });
+    sendServerError(res, error);
   }
 });
 
+// ---------- CHANGE PASSWORD ROUTE (Protected) ----------
 router.put("/change-password", verifyToken, async (req, res) => {
   try {
     const result = changePasswordSchema.safeParse(req.body);
@@ -206,13 +223,12 @@ router.put("/change-password", verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: "Current password is incorrect." });
     }
 
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedNewPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     res.status(200).json({ success: true, message: "Password changed successfully!" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error: " + error.message });
+    sendServerError(res, error);
   }
 });
 
