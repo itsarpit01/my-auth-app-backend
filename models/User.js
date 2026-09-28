@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Yeh schema define karta hai ki har user ka data kaisa dikhega database me
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -10,7 +9,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true, // koi bhi do users same email se nahi ban sakte
+      unique: true, 
     },
     password: {
       type: String,
@@ -18,8 +17,8 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // createdAt, updatedAt fields automatically add ho jayengi
-    versionKey: false, // __v field ko disable kar deta hai
+    timestamps: true, 
+    versionKey: false, 
   }
 );
 

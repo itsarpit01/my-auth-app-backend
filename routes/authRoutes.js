@@ -7,7 +7,6 @@ import verifyToken from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ---------- SIGNUP VALIDATION SCHEMA (Strong) ----------
 const signupSchema = z
   .object({
     name: z
@@ -43,13 +42,11 @@ const signupSchema = z
     { message: "Password must not contain your name", path: ["password"] }
   );
 
-// ---------- LOGIN VALIDATION SCHEMA ----------
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
-// ---------- UPDATE PROFILE VALIDATION SCHEMA ----------
 const updateProfileSchema = z.object({
   name: z
     .string()
@@ -65,7 +62,6 @@ const updateProfileSchema = z.object({
     .max(100, "Email must not exceed 100 characters"),
 });
 
-// ---------- CHANGE PASSWORD VALIDATION SCHEMA ----------
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z
@@ -79,7 +75,6 @@ const changePasswordSchema = z.object({
     .regex(/^\S*$/, "Password must not contain spaces"),
 });
 
-// ---------- SIGNUP ROUTE ----------
 router.post("/signup", async (req, res) => {
   try {
     const result = signupSchema.safeParse(req.body);
@@ -104,7 +99,6 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// ---------- LOGIN ROUTE ----------
 router.post("/login", async (req, res) => {
   try {
     const result = loginSchema.safeParse(req.body);
@@ -141,10 +135,9 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ---------- GET PROFILE ROUTE (Protected) ----------
 router.get("/profile", verifyToken, async (req, res) => {
   try {
-    // req.user middleware se aata hai (decoded token: { userId, email })
+
     const user = await User.findById(req.user.userId).select("-password");
 
     if (!user) {
@@ -160,7 +153,6 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
-// ---------- UPDATE PROFILE ROUTE (Protected) ----------
 router.put("/update-profile", verifyToken, async (req, res) => {
   try {
     const result = updateProfileSchema.safeParse(req.body);
@@ -170,7 +162,6 @@ router.put("/update-profile", verifyToken, async (req, res) => {
 
     const { name, email } = result.data;
 
-    // Agar naya email kisi aur account ka hai to reject karo
     const emailTaken = await User.findOne({ email, _id: { $ne: req.user.userId } });
     if (emailTaken) {
       return res.status(400).json({ success: false, message: "This email is already in use by another account." });
@@ -196,7 +187,6 @@ router.put("/update-profile", verifyToken, async (req, res) => {
   }
 });
 
-// ---------- CHANGE PASSWORD ROUTE (Protected) ----------
 router.put("/change-password", verifyToken, async (req, res) => {
   try {
     const result = changePasswordSchema.safeParse(req.body);
