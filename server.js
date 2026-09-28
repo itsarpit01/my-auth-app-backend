@@ -1,49 +1,30 @@
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import connectDB from "./config/db.js";
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
 
 const app = express();
 
-// ---------- MIDDLEWARE ----------
-// Sirf hamara frontend backend se baat kar sakta hai
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
-// ---------- ROUTES ----------
 app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
 
-// ---------- 404 HANDLER ----------
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Route not found." });
-});
+// Middleware for 404 and global error handling
+app.use(notFound);
+app.use(errorHandler);
 
-// ---------- GLOBAL ERROR HANDLER ----------
-app.use((err, req, res, next) => {
-  console.error("Unexpected error:", err.stack);
-  res.status(500).json({
-    success: false,
-    message: "Something went wrong on the server. Please try again later.",
+connectDB().then(() => {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 });
-
-// ---------- MONGODB CONNECTION ----------
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected successfully");
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
-  });
