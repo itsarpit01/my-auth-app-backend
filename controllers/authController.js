@@ -3,11 +3,13 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { sendServerError } from "../utils/responseHelper.js";
 
+// ---------- SIGNUP ----------
 export async function signup(req, res) {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    // isDeleted: false isliye, taaki purane deleted account ka email dobara use ho sake
+    const existingUser = await User.findOne({ email, isDeleted: false });
     if (existingUser)
       return res.status(400).json({ success: false, message: "This email is already registered." });
 
@@ -21,11 +23,13 @@ export async function signup(req, res) {
   }
 }
 
+// ---------- LOGIN ----------
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    // Deleted account isliye login nahi hone dete
+    const user = await User.findOne({ email, isDeleted: false });
     if (!user)
       return res.status(400).json({ success: false, message: "Invalid email or password." });
 
@@ -50,6 +54,7 @@ export async function login(req, res) {
   }
 }
 
+// ---------- GET PROFILE ----------
 export async function getProfile(req, res) {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -62,11 +67,12 @@ export async function getProfile(req, res) {
   }
 }
 
+// ---------- UPDATE PROFILE ----------
 export async function updateProfile(req, res) {
   try {
     const { name, email } = req.body;
 
-    const emailTaken = await User.findOne({ email, _id: { $ne: req.user.userId } });
+    const emailTaken = await User.findOne({ email, isDeleted: false, _id: { $ne: req.user.userId } });
     if (emailTaken)
       return res.status(400).json({ success: false, message: "This email is already in use by another account." });
 
@@ -89,6 +95,7 @@ export async function updateProfile(req, res) {
   }
 }
 
+// ---------- CHANGE PASSWORD ----------
 export async function changePassword(req, res) {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -105,6 +112,31 @@ export async function changePassword(req, res) {
     await user.save();
 
     res.status(200).json({ success: true, message: "Password changed successfully!" });
+  } catch (error) {
+    sendServerError(res, error);
+  }
+}
+
+// ---------- DELETE ACCOUNT (soft delete) ----------
+export async function deleteAccount(req, res) {
+  try {
+    const { password } = req.body;
+
+    const user = await User.findById(req.user.userId);
+    if (!user)
+      return res.status(404).json({ success: false, message: "User not found." });
+
+    // Safety check: account delete karne se pehle password dobara confirm karwao
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ success: false, message: "Password is incorrect." });
+
+    // Email ko badal dete hain, taaki original email dobara signup ke liye free ho jaye
+    user.isDeleted = true;
+    user.email = `deleted_${Date.now()}_${user.email}`;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Your account has been deleted." });
   } catch (error) {
     sendServerError(res, error);
   }

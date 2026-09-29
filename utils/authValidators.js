@@ -65,3 +65,7 @@ export const changePasswordSchema = z.object({
     .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 special character")
     .regex(/^\S*$/, "Password must not contain spaces"),
 });
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});

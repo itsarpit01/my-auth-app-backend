@@ -6,6 +6,7 @@ import {
   loginSchema,
   updateProfileSchema,
   changePasswordSchema,
+  deleteAccountSchema,
 } from "../utils/authValidators.js";
 import {
   signup,
@@ -13,6 +14,7 @@ import {
   getProfile,
   updateProfile,
   changePassword,
+  deleteAccount,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -22,5 +24,6 @@ router.post("/login", validate(loginSchema), login);
 router.get("/profile", verifyToken, getProfile);
 router.put("/update-profile", verifyToken, validate(updateProfileSchema), updateProfile);
 router.put("/change-password", verifyToken, validate(changePasswordSchema), changePassword);
+router.delete("/delete-account", verifyToken, validate(deleteAccountSchema), deleteAccount);
 
 export default router;
