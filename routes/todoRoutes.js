@@ -2,13 +2,7 @@ import express from "express";
 import verifyToken from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validateMiddleware.js";
 import { taskSchema } from "../utils/todoValidators.js";
-import {
-  getTodos,
-  createTodo,
-  updateTodo,
-  toggleTodo,
-  deleteTodo,
-} from "../controllers/todoController.js";
+import { getTodos, createTodo, updateTodo, toggleTodo,deleteTodo,} from "../controllers/todoController.js";
 
 const router = express.Router();
 

@@ -14,7 +14,6 @@ async function verifyToken(req, res, next) {
       return res.status(403).json({ success: false, message: "Invalid or expired token." });
     }
 
-    // Token sahi hai, ab confirm karo user abhi bhi active hai (delete to nahi hua)
     const user = await User.findById(decoded.userId);
     if (!user || user.isDeleted) {
       return res.status(401).json({ success: false, message: "Account not found or has been deleted." });

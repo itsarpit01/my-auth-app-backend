@@ -1,13 +1,9 @@
 import Todo from "../models/Todo.js";
 import { sendServerError } from "../utils/responseHelper.js";
-
-// User ke search input me agar regex-special characters (jaise . * ( ) ) hon,
-// to unhe "escape" karte hain taaki MongoDB usse plain text maane, regex command na maane.
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// ---------- 1. GET TODOS (Excludes Soft-Deleted Tasks) ----------
 export async function getTodos(req, res) {
   try {
     const userId = req.user.userId;
@@ -43,10 +39,9 @@ export async function getTodos(req, res) {
   }
 }
 
-// ---------- 2. CREATE A TASK ----------
 export async function createTodo(req, res) {
   try {
-    const { title } = req.body; // ab validate middleware se pehle hi trim/check ho chuka hai
+    const { title } = req.body; 
     const userId = req.user.userId;
 
     const existingTask = await Todo.findOne({
@@ -68,7 +63,6 @@ export async function createTodo(req, res) {
   }
 }
 
-// ---------- 3. UPDATE TASK TITLE ----------
 export async function updateTodo(req, res) {
   try {
     const { id } = req.params;
@@ -102,7 +96,6 @@ export async function updateTodo(req, res) {
   }
 }
 
-// ---------- 4. TOGGLE TASK COMPLETED ----------
 export async function toggleTodo(req, res) {
   try {
     const { id } = req.params;
@@ -122,7 +115,6 @@ export async function toggleTodo(req, res) {
   }
 }
 
-// ---------- 5. SOFT DELETE A TASK ----------
 export async function deleteTodo(req, res) {
   try {
     const { id } = req.params;

@@ -1,21 +1,8 @@
 import express from "express";
 import verifyToken from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validateMiddleware.js";
-import {
-  signupSchema,
-  loginSchema,
-  updateProfileSchema,
-  changePasswordSchema,
-  deleteAccountSchema,
-} from "../utils/authValidators.js";
-import {
-  signup,
-  login,
-  getProfile,
-  updateProfile,
-  changePassword,
-  deleteAccount,
-} from "../controllers/authController.js";
+import {signupSchema,loginSchema,updateProfileSchema, changePasswordSchema, deleteAccountSchema,} from "../utils/authValidators.js";
+import { signup,login,getProfile,updateProfile,changePassword,deleteAccount,} from "../controllers/authController.js";
 
 const router = express.Router();
 
