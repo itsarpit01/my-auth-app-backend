@@ -11,10 +11,14 @@ const todoSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false, 
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // Connects every task to the logged-in user
+      required: true,
     },
   },
   {
