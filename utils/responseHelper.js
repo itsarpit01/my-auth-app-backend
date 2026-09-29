@@ -1,4 +1,4 @@
-// ---------- COMMON SERVER ERROR RESPONSE ----------
+
 export function sendServerError(res, error) {
   console.error("Route error:", error);
   res.status(500).json({

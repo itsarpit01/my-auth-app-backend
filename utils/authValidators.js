@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// ---------- SIGNUP SCHEMA ----------
 export const signupSchema = z
   .object({
     name: z
@@ -34,13 +33,11 @@ export const signupSchema = z
     { message: "Password must not contain your name", path: ["password"] }
   );
 
-// ---------- LOGIN SCHEMA ----------
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
-// ---------- UPDATE PROFILE SCHEMA ----------
 export const updateProfileSchema = z.object({
   name: z
     .string()
@@ -56,7 +53,6 @@ export const updateProfileSchema = z.object({
     .max(100, "Email must not exceed 100 characters"),
 });
 
-// ---------- CHANGE PASSWORD SCHEMA ----------
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z

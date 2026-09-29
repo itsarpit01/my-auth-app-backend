@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { sendServerError } from "../utils/responseHelper.js";
 
-// ---------- SIGNUP ----------
 export async function signup(req, res) {
   try {
     const { name, email, password } = req.body;
@@ -22,7 +21,6 @@ export async function signup(req, res) {
   }
 }
 
-// ---------- LOGIN ----------
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
@@ -52,7 +50,6 @@ export async function login(req, res) {
   }
 }
 
-// ---------- GET PROFILE ----------
 export async function getProfile(req, res) {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -65,7 +62,6 @@ export async function getProfile(req, res) {
   }
 }
 
-// ---------- UPDATE PROFILE ----------
 export async function updateProfile(req, res) {
   try {
     const { name, email } = req.body;
@@ -93,7 +89,6 @@ export async function updateProfile(req, res) {
   }
 }
 
-// ---------- CHANGE PASSWORD ----------
 export async function changePassword(req, res) {
   try {
     const { currentPassword, newPassword } = req.body;

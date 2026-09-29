@@ -1,6 +1,12 @@
 import Todo from "../models/Todo.js";
 import { sendServerError } from "../utils/responseHelper.js";
 
+// User ke search input me agar regex-special characters (jaise . * ( ) ) hon,
+// to unhe "escape" karte hain taaki MongoDB usse plain text maane, regex command na maane.
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // ---------- 1. GET TODOS (Excludes Soft-Deleted Tasks) ----------
 export async function getTodos(req, res) {
   try {
@@ -11,11 +17,10 @@ export async function getTodos(req, res) {
     const filter = req.query.filter || "all";
     const search = req.query.search || "";
 
-    // Always exclude soft-deleted tasks
     const query = { user: userId, isDeleted: false };
 
     if (search.trim() !== "") {
-      query.title = { $regex: search.trim(), $options: "i" };
+      query.title = { $regex: escapeRegex(search.trim()), $options: "i" };
     }
 
     if (filter === "active") {
@@ -32,53 +37,32 @@ export async function getTodos(req, res) {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    res.status(200).json({
-      success: true,
-      todos,
-      page,
-      totalPages,
-      totalTodos,
-    });
+    res.status(200).json({ success: true, todos, page, totalPages, totalTodos });
   } catch (error) {
     sendServerError(res, error);
   }
 }
 
-// ---------- 2. CREATE A TASK (Checks Database for Duplicates) ----------
+// ---------- 2. CREATE A TASK ----------
 export async function createTodo(req, res) {
   try {
-    const { title } = req.body;
+    const { title } = req.body; // ab validate middleware se pehle hi trim/check ho chuka hai
     const userId = req.user.userId;
 
-    const cleanTitle = title.trim();
-
-    // Check if task already exists in database (case-insensitive)
     const existingTask = await Todo.findOne({
       user: userId,
-      title: { $regex: `^${cleanTitle}$`, $options: "i" },
+      title: { $regex: `^${escapeRegex(title)}$`, $options: "i" },
       isDeleted: false,
     });
 
     if (existingTask) {
-      return res.status(400).json({
-        success: false,
-        message: "This task already exists in your list.",
-      });
+      return res.status(400).json({ success: false, message: "This task already exists in your list." });
     }
 
-    const newTodo = new Todo({
-      title: cleanTitle,
-      user: userId,
-      isDeleted: false,
-    });
-
+    const newTodo = new Todo({ title, user: userId, isDeleted: false });
     await newTodo.save();
 
-    res.status(201).json({
-      success: true,
-      message: "Task added successfully!",
-      todo: newTodo,
-    });
+    res.status(201).json({ success: true, message: "Task added successfully!", todo: newTodo });
   } catch (error) {
     sendServerError(res, error);
   }
@@ -91,26 +75,20 @@ export async function updateTodo(req, res) {
     const { title } = req.body;
     const userId = req.user.userId;
 
-    const cleanTitle = title.trim();
-
-    // Check if another task already has this title
     const duplicate = await Todo.findOne({
       user: userId,
       _id: { $ne: id },
-      title: { $regex: `^${cleanTitle}$`, $options: "i" },
+      title: { $regex: `^${escapeRegex(title)}$`, $options: "i" },
       isDeleted: false,
     });
 
     if (duplicate) {
-      return res.status(400).json({
-        success: false,
-        message: "Another task already has this title.",
-      });
+      return res.status(400).json({ success: false, message: "Another task already has this title." });
     }
 
     const updatedTodo = await Todo.findOneAndUpdate(
       { _id: id, user: userId, isDeleted: false },
-      { title: cleanTitle },
+      { title },
       { new: true }
     );
 
@@ -118,11 +96,7 @@ export async function updateTodo(req, res) {
       return res.status(404).json({ success: false, message: "Task not found." });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Task updated!",
-      todo: updatedTodo,
-    });
+    res.status(200).json({ success: true, message: "Task updated!", todo: updatedTodo });
   } catch (error) {
     sendServerError(res, error);
   }
@@ -142,11 +116,7 @@ export async function toggleTodo(req, res) {
     todo.completed = !todo.completed;
     await todo.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Task status updated!",
-      todo,
-    });
+    res.status(200).json({ success: true, message: "Task status updated!", todo });
   } catch (error) {
     sendServerError(res, error);
   }
@@ -158,7 +128,6 @@ export async function deleteTodo(req, res) {
     const { id } = req.params;
     const userId = req.user.userId;
 
-    // Soft delete: sets isDeleted to true instead of removing from DB
     const todo = await Todo.findOneAndUpdate(
       { _id: id, user: userId, isDeleted: false },
       { isDeleted: true },
@@ -169,10 +138,7 @@ export async function deleteTodo(req, res) {
       return res.status(404).json({ success: false, message: "Task not found." });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Task deleted successfully (soft deleted)!",
-    });
+    res.status(200).json({ success: true, message: "Task deleted successfully (soft deleted)!" });
   } catch (error) {
     sendServerError(res, error);
   }
