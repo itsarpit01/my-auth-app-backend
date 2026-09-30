@@ -5,5 +5,6 @@ export const taskSchema = z.object({
     .string()
     .trim()
     .min(3, "Task title must be at least 3 characters")
-    .max(100, "Task title cannot exceed 100 characters"),
+    .max(100, "Task title cannot exceed 100 characters")
+    .regex(/[a-zA-Z]/, "Task title must contain at least one letter"),
 });
